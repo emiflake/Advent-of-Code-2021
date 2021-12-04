@@ -59,6 +59,7 @@ common deps
     , transformers
     , data-default
     , megaparsec
+    , parser-combinators
     , text
 
 
@@ -69,6 +70,9 @@ library
   hs-source-dirs: ./src
   exposed-modules:
     Day02
+    Day03
+    Day04
   default-language:    Haskell2010
   other-modules:
     Parser
+    Common
