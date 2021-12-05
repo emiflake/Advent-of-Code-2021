@@ -61,6 +61,7 @@ common deps
     , megaparsec
     , parser-combinators
     , text
+    , linear
 
 
 library
@@ -72,7 +73,9 @@ library
     Day02
     Day03
     Day04
+    Day05
   default-language:    Haskell2010
   other-modules:
     Parser
     Common
+    Linear.Compat

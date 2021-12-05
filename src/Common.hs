@@ -1,6 +1,8 @@
 module Common (module Common) where
 
 import Control.Applicative
+import Control.Arrow
+import Data.Function
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import Data.Maybe
@@ -34,3 +36,6 @@ listsToMap lists =
     | (y, list) <- zip [0 ..] lists
     , (x, v) <- zip [0 ..] list
     ]
+
+(^&&&) :: forall m a b c. Monad m => (a -> m b) -> (a -> m c) -> (a -> m (b, c))
+(^&&&) f g = \x -> liftA2 (,) (f x) (g x)

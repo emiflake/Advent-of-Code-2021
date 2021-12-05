@@ -48,8 +48,7 @@ checkOff p = Endo $ Board . Map.map (modIf ((== p) . snd) (first (const True))) 
 projections :: Map (Int, Int) a -> [[a]]
 projections b =
   let h = [[(x, y) | x <- [0 .. 4]] | y <- [0 .. 4]]
-      v = transpose $ [[(i, i), (4 - i, i)] | i <- [0 .. 4]]
-   in fmap (b Map.!) <$> concat [h, transpose h, v]
+   in fmap (b Map.!) <$> concat [h, transpose h]
 
 winning :: Board -> Maybe [Int]
 winning board@(Board b) =
