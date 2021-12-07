@@ -63,6 +63,10 @@ common deps
     , text
     , linear
     , semigroupoids
+    , composition
+    , lens
+    , natural-transformation
+    , criterion
 
 
 library
@@ -76,9 +80,17 @@ library
     Day04
     Day05
     Day06
+    Day07
 
   default-language:    Haskell2010
   other-modules:
     Parser
     Common
     Linear.Compat
+
+executable days
+  import: lang, deps
+  build-depends: aoc
+  hs-source-dirs: app
+  main-is: Main.hs
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N -O3
