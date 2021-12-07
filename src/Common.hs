@@ -3,10 +3,12 @@ module Common (module Common) where
 import Control.Applicative
 import Control.Arrow
 import Data.Function
+import Data.List
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import Data.Maybe
 import Data.Monoid (Endo (Endo), appEndo)
+import Data.Semigroup (stimes)
 
 zipOn :: forall f a b. Applicative f => (a -> b) -> f a -> f (a, b)
 zipOn f xs = ((,) <*> f) <$> xs
@@ -29,7 +31,7 @@ firstJust :: forall a b. (a -> Maybe b) -> [a] -> Maybe b
 firstJust f = listToMaybe . catMaybes . fmap f
 
 -- I've written this enough times by now, lol.
-listsToMap :: forall a. [[a]] -> Map (Int, Int) a
+listsToMap :: forall a e. (Num e, Enum e, Ord e) => [[a]] -> Map (e, e) a
 listsToMap lists =
   Map.fromList
     [ ((x, y), v)
@@ -37,5 +39,21 @@ listsToMap lists =
     , (x, v) <- zip [0 ..] list
     ]
 
-(^&&&) :: forall m a b c. Monad m => (a -> m b) -> (a -> m c) -> (a -> m (b, c))
-(^&&&) f g = \x -> liftA2 (,) (f x) (g x)
+-- | enumFromTo that works both ways
+dynamicRange :: (Ord a, Enum a) => a -> a -> [a]
+dynamicRange x y
+  | x > y = reverse [y .. x]
+  | otherwise = [x .. y]
+
+nTimes :: Int -> (a -> a) -> a -> a
+nTimes n = appEndo . stimes n . Endo
+
+invFrequencies :: Ord a => [a] -> Map Int [a]
+invFrequencies =
+  foldl1 (Map.unionWith (<>))
+    . fmap (uncurry Map.singleton <<< length &&& (: []) . head)
+    . group
+    . sort
+
+frequencies :: Ord a => [a] -> Map a Int
+frequencies = Map.fromList . fmap (head &&& length) . group . sort

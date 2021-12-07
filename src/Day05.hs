@@ -36,40 +36,37 @@ showMap map =
         | y <- [y0 .. y1]
         ]
 
-absRange x y = [min x y .. max x y]
-
 renderSimp :: Rule -> Map (V2 Int) Int
 renderSimp r
-  | r.from.x == r.to.x = Map.fromList [(V2 r.from.x y, 1) | y <- absRange r.from.y r.to.y]
-  | r.from.y == r.to.y = Map.fromList [(V2 x r.from.y, 1) | x <- absRange r.from.x r.to.x]
+  | r.from.x == r.to.x = Map.fromList [(V2 r.from.x y, 1) | y <- dynamicRange r.from.y r.to.y]
+  | r.from.y == r.to.y = Map.fromList [(V2 x r.from.y, 1) | x <- dynamicRange r.from.x r.to.x]
   | otherwise = Map.empty
 
 renderVert :: Rule -> Map (V2 Int) Int
 renderVert r
-  | r.from.x == r.to.x = Map.fromList [(V2 r.from.x y, 1) | y <- absRange r.from.y r.to.y]
-  | r.from.y == r.to.y = Map.fromList [(V2 x r.from.y, 1) | x <- absRange r.from.x r.to.x]
+  | r.from.x == r.to.x || r.from.y == r.to.y = renderSimp r
   | otherwise =
-    let dx = r.to.x - r.from.x
-        dy = r.to.y - r.from.y
-     in Map.fromList . fmap ((,1) . uncurry V2) $ zip (bool reverse id (dx > 0) $ absRange r.from.x r.to.x) (bool reverse id (dy > 0) $absRange r.from.y r.to.y)
+    Map.fromList
+      [ (V2 x y, 1)
+      | (x, y) <- zip (dynamicRange r.from.x r.to.x) (dynamicRange r.from.y r.to.y)
+      ]
 
 pInput =
   many . lexeme $ Rule <$> (V2 <$> int <* "," <*> int) <* " -> " <*> (V2 <$> int <* "," <*> int)
   where
     int = (read <$> some digitChar)
 
+-- Do I really need Kleisli here? No, but I wanna be able to swap it out for `showMap` :)
 exe =
   either
     (putStrLn . errorBundlePretty)
-    (void . runKleisli (solve renderSimp &&& solve renderVert))
+    (void . runKleisli (Kleisli (solve renderSimp) &&& Kleisli (solve renderVert)))
     . runMyParser pInput
     =<< Text.readFile "inputs/5"
   where
-    -- Do I really need Kleisli here? No, but I wanna be able to swap it out for `showMap` :)
     solve render =
-      Kleisli $
-        print
-          . Map.size
-          . Map.filter (>= 2)
-          . foldl1 (Map.unionWith (+))
-          . fmap render
+      print
+        . Map.size
+        . Map.filter (>= 2)
+        . foldl1 (Map.unionWith (+))
+        . fmap render
